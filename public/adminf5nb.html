@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>F5 Informática - Admin</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    :root {
+      --primary: #2c3e50;
+      --secondary: #3498db;
+      --accent: #e74c3c;
+      --success: #2ecc71;
+      --warning: #f39c12;
+      --light: #ecf0f1;
+      --dark: #2c3e50;
+      --gray: #95a5a6;
+      --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      --transition: all 0.3s ease;
+    }
+
+    body {
+      background-color: #f8f9fa;
+      color: #333;
+      line-height: 1.6;
+    }
+
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, var(--primary), var(--dark));
+      color: white;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: var(--shadow);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    .nav-links a {
+      color: white;
+      text-decoration: none;
+      font-weight: 500;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      transition: var(--transition);
+    }
+
+    .nav-links a:hover, .nav-links a.ativo {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Admin Container */
+    .admin-container {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 2rem;
+    }
+
+    .admin-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    .admin-title {
+      color: var(--primary);
+      font-size: 2rem;
+    }
+
+    /* Botões */
+    .btn {
+      padding: 0.6rem 1.2rem;
+      border: none;
+      border-radius: 4px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn-primary {
+      background-color: var(--secondary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background-color: #2980b9;
+    }
+
+    .btn-success {
+      background-color: var(--success);
+      color: white;
+    }
+
+    .btn-success:hover {
+      background-color: #27ae60;
+    }
+
+    .btn-warning {
+      background-color: var(--warning);
+      color: white;
+    }
+
+    .btn-warning:hover {
+      background-color: #e67e22;
+    }
+
+    .btn-danger {
+      background-color: var(--accent);
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background-color: #c0392b;
+    }
+
+    /* Tabela */
+    .table-container {
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      margin-bottom: 2rem;
+    }
+
+    .products-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .products-table th,
+    .products-table td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+    }
+
+    .products-table th {
+      background-color: var(--primary);
+      color: white;
+      font-weight: 600;
+    }
+
+    .products-table tr:hover {
+      background-color: #f8f9fa;
+    }
+
+    .product-image-small {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: 4px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.8);
+      z-index: 2000;
+      overflow-y: auto;
+      padding: 2rem;
+    }
+
+    .modal-content {
+      background-color: white;
+      max-width: 800px;
+      margin: 0 auto;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      animation: modalFadeIn 0.3s ease;
+    }
+
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem;
+      border-bottom: 1px solid #eee;
+      background-color: var(--primary);
+      color: white;
+    }
+
+    .modal-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: white;
+    }
+
+    .modal-body {
+      padding: 1.5rem;
+    }
+
+    /* Formulário */
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 0.8rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 1rem;
+      transition: var(--transition);
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--secondary);
+      box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .form-textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .array-input {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .array-input input {
+      flex: 1;
+    }
+
+    .array-items {
+      margin-top: 0.5rem;
+    }
+
+    .array-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem;
+      background-color: var(--light);
+      border-radius: 4px;
+      margin-bottom: 0.25rem;
+    }
+
+    .spec-input {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .spec-items {
+      margin-top: 0.5rem;
+    }
+
+    .spec-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem;
+      background-color: var(--light);
+      border-radius: 4px;
+      margin-bottom: 0.25rem;
+    }
+
+    /* Alertas */
+    .alert {
+      padding: 1rem;
+      border-radius: 4px;
+      margin-bottom: 1rem;
+    }
+
+    .alert-success {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .alert-error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    /* Loading */
+    .loading {
+      text-align: center;
+      padding: 2rem;
+      color: var(--gray);
+    }
+
+    .loading-spinner {
+      border: 4px solid rgba(0, 0, 0, 0.1);
+      border-left-color: var(--secondary);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 1rem;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Responsividade */
+    @media (max-width: 768px) {
+      .header {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1rem;
+      }
+
+      .admin-container {
+        padding: 0 1rem;
+      }
+
+      .admin-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+      }
+
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+
+      .products-table {
+        font-size: 0.9rem;
+      }
+
+      .actions {
+        flex-direction: column;
+      }
+
+      .modal {
+        padding: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- HEADER -->
+  <header class="header">
+    <div class="logo">
+      <i class="fas fa-laptop-code"></i>
+      <h1>F5 Informática Caxias - Admin</h1>
+    </div>
+    <nav class="nav-links">
+      <a href="index.html">Catálogo</a>
+      <a href="admin.html" class="ativo">Admin</a>
+    </nav>
+  </header>
+
+  <!-- ADMIN CONTAINER -->
+  <div class="admin-container">
+    <div class="admin-header">
+      <h2 class="admin-title">Gerenciamento de Produtos</h2>
+      <button class="btn btn-primary" id="btnNovoProduto">
+        <i class="fas fa-plus"></i> Novo Produto
+      </button>
+    </div>
+
+    <!-- Alertas -->
+    <div id="alertContainer"></div>
+
+    <!-- Tabela de Produtos -->
+    <div class="table-container">
+      <table class="products-table">
+        <thead>
+          <tr>
+            <th>Imagem</th>
+            <th>Nome</th>
+            <th>Preço</th>
+            <th>Descrição</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="productsTableBody">
+          <!-- Produtos serão carregados aqui -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Loading -->
+    <div id="loading" class="loading">
+      <div class="loading-spinner"></div>
+      <p>Carregando produtos...</p>
+    </div>
+  </div>
+
+  <!-- MODAL DE PRODUTO -->
+  <div id="productModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modalProductTitle">Novo Produto</h2>
+        <button class="close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="productForm">
+          <input type="hidden" id="productId">
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="productName">Nome do Produto *</label>
+              <input type="text" id="productName" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label for="productPrice">Preço (R$) *</label>
+              <input type="number" id="productPrice" class="form-control" step="0.01" min="0" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="productDescription">Descrição *</label>
+            <textarea id="productDescription" class="form-control form-textarea" required></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="productImage">Imagem Principal (URL) *</label>
+            <input type="url" id="productImage" class="form-control" required>
+          </div>
+
+          <div class="form-group">
+            <label>Imagens Adicionais (URLs)</label>
+            <div id="additionalImagesContainer">
+              <!-- Imagens adicionais serão adicionadas aqui -->
+            </div>
+            <button type="button" class="btn btn-outline" onclick="addImageField()">
+              <i class="fas fa-plus"></i> Adicionar Imagem
+            </button>
+          </div>
+
+          <div class="form-group">
+            <label>Especificações Técnicas</label>
+            <div id="specsContainer">
+              <!-- Campos de especificação serão adicionados aqui -->
+            </div>
+            <button type="button" class="btn btn-outline" onclick="addSpecField()">
+              <i class="fas fa-plus"></i> Adicionar Especificação
+            </button>
+          </div>
+
+          <div class="form-group">
+            <label>Observações</label>
+            <div id="observationsContainer">
+              <!-- Campos de observação serão adicionados aqui -->
+            </div>
+            <button type="button" class="btn btn-outline" onclick="addObservationField()">
+              <i class="fas fa-plus"></i> Adicionar Observação
+            </button>
+          </div>
+
+          <div class="form-group">
+            <label>Tags</label>
+            <div id="tagsContainer">
+              <!-- Campos de tag serão adicionados aqui -->
+            </div>
+            <button type="button" class="btn btn-outline" onclick="addTagField()">
+              <i class="fas fa-plus"></i> Adicionar Tag
+            </button>
+          </div>
+
+          <div class="form-actions" style="display: flex; gap: 1rem; margin-top: 2rem;">
+            <button type="submit" class="btn btn-success" style="flex: 1;">
+              <i class="fas fa-save"></i> Salvar Produto
+            </button>
+            <button type="button" class="btn btn-danger" onclick="closeModal()">
+              <i class="fas fa-times"></i> Cancelar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE CONFIRMAÇÃO -->
+  <div id="confirmModal" class="modal">
+    <div class="modal-content" style="max-width: 500px;">
+      <div class="modal-header">
+        <h2 class="modal-title">Confirmar Exclusão</h2>
+        <button class="close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>Tem certeza que deseja excluir o produto "<span id="productToDeleteName"></span>"?</p>
+        <p>Esta ação não pode ser desfeita.</p>
+        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+          <button class="btn btn-danger" id="confirmDeleteBtn" style="flex: 1;">
+            <i class="fas fa-trash"></i> Excluir
+          </button>
+          <button class="btn btn-outline" onclick="closeConfirmModal()">
+            <i class="fas fa-times"></i> Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Elementos DOM
+    const productsTableBody = document.getElementById('productsTableBody');
+    const productModal = document.getElementById('productModal');
+    const confirmModal = document.getElementById('confirmModal');
+    const productForm = document.getElementById('productForm');
+    const loadingElement = document.getElementById('loading');
+    const alertContainer = document.getElementById('alertContainer');
+
+    // Variáveis globais
+    let produtos = [];
+    let productToDelete = null;
+
+    // Função para mostrar alerta
+    function showAlert(message, type = 'success') {
+      const alert = document.createElement('div');
+      alert.className = `alert alert-${type}`;
+      alert.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span>${message}</span>
+          <button onclick="this.parentElement.parentElement.remove()" style="background: none; border: none; cursor: pointer;">×</button>
+        </div>
+      `;
+      alertContainer.appendChild(alert);
+      
+      // Remove o alerta após 5 segundos
+      setTimeout(() => {
+        if (alert.parentElement) {
+          alert.remove();
+        }
+      }, 5000);
+    }
+
+    // Função para carregar produtos
+    function carregarProdutos() {
+      // Simulação de carregamento - substitua pela sua lógica JSONP
+      setTimeout(() => {
+        // Dados de exemplo - substitua pelos dados reais do seu JSONP
+        produtos = [
+          {
+            id: 1,
+            nome: "Notebook Dell Inspiron 15",
+            preco: 3299.99,
+            descricao: "Notebook Dell com Intel i5 e SSD 512GB",
+            imagem: "https://images.unsplash.com/photo-1593640408182-31c70c8268f5?ixlib=rb-4.0.3&w=400&h=300&fit=crop",
+            imagens: [
+              "https://images.unsplash.com/photo-1593640408182-31c70c8268f5?ixlib=rb-4.0.3&w=400&h=300&fit=crop",
+              "https://images.unsplash.com/photo-1593640408182-31c70c8268f5?ixlib=rb-4.0.3&w=400&h=300&fit=crop"
+            ],
+            especificacoes: {
+              "Processador": "Intel i5",
+              "RAM": "8GB",
+              "SSD": "512GB"
+            },
+            observacoes: [
+              "Garantia 12 meses",
+              "Office ativado"
+            ],
+            tags: ["dell", "notebook", "i5"]
+          },
+          {
+            id: 2,
+            nome: "Mouse Gamer Redragon Cobra",
+            preco: 149.90,
+            descricao: "Mouse gamer com RGB e 7 botões programáveis",
+            imagem: "https://images.unsplash.com/photo-1527814050087-3793815479db?ixlib=rb-4.0.3&w=400&h=300&fit=crop",
+            imagens: [
+              "https://images.unsplash.com/photo-1527814050087-3793815479db?ixlib=rb-4.0.3&w=400&h=300&fit=crop"
+            ],
+            especificacoes: {
+              "DPI": "10000",
+              "Iluminação": "RGB",
+              "Conexão": "USB"
+            },
+            observacoes: [
+              "Garantia 1 ano",
+              "Cabo trançado"
+            ],
+            tags: ["mouse", "gamer", "redragon"]
+          }
+        ];
+        
+        loadingElement.style.display = 'none';
+        renderizarTabela();
+      }, 1000);
+    }
+
+    // Função para renderizar a tabela
+    function renderizarTabela() {
+      productsTableBody.innerHTML = '';
+      
+      if (produtos.length === 0) {
+        productsTableBody.innerHTML = `
+          <tr>
+            <td colspan="5" style="text-align: center; padding: 2rem;">
+              Nenhum produto cadastrado.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+      
+      produtos.forEach(produto => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>
+            <img src="${produto.imagem}" alt="${produto.nome}" class="product-image-small">
+          </td>
+          <td>${produto.nome}</td>
+          <td>R$ ${parseFloat(produto.preco).toFixed(2)}</td>
+          <td>${produto.descricao.substring(0, 50)}${produto.descricao.length > 50 ? '...' : ''}</td>
+          <td>
+            <div class="actions">
+              <button class="btn btn-warning" onclick="editarProduto(${produto.id})">
+                <i class="fas fa-edit"></i> Editar
+              </button>
+              <button class="btn btn-danger" onclick="confirmarExclusao(${produto.id})">
+                <i class="fas fa-trash"></i> Excluir
+              </button>
+            </div>
+          </td>
+        `;
+        productsTableBody.appendChild(row);
+      });
+    }
+
+    // Funções para adicionar campos dinâmicos
+    function addImageField(value = '') {
+      const container = document.getElementById('additionalImagesContainer');
+      const div = document.createElement('div');
+      div.className = 'array-input';
+      div.innerHTML = `
+        <input type="url" class="form-control" value="${value}" placeholder="URL da imagem">
+        <button type="button" class="btn btn-danger" onclick="this.parentElement.remove()">
+          <i class="fas fa-times"></i>
+        </button>
+      `;
+      container.appendChild(div);
+    }
+
+    function addSpecField(key = '', value = '') {
+      const container = document.getElementById('specsContainer');
+      const div = document.createElement('div');
+      div.className = 'spec-input';
+      div.innerHTML = `
+        <input type="text" class="form-control" value="${key}" placeholder="Nome da especificação">
+        <input type="text" class="form-control" value="${value}" placeholder="Valor">
+        <button type="button" class="btn btn-danger" onclick="this.parentElement.remove()">
+          <i class="fas fa-times"></i>
+        </button>
+      `;
+      container.appendChild(div);
+    }
+
+    function addObservationField(value = '') {
+      const container = document.getElementById('observationsContainer');
+      const div = document.createElement('div');
+      div.className = 'array-input';
+      div.innerHTML = `
+        <input type="text" class="form-control" value="${value}" placeholder="Observação">
+        <button type="button" class="btn btn-danger" onclick="this.parentElement.remove()">
+          <i class="fas fa-times"></i>
+        </button>
+      `;
+      container.appendChild(div);
+    }
+
+    function addTagField(value = '') {
+      const container = document.getElementById('tagsContainer');
+      const div = document.createElement('div');
+      div.className = 'array-input';
+      div.innerHTML = `
+        <input type="text" class="form-control" value="${value}" placeholder="Tag">
+        <button type="button" class="btn btn-danger" onclick="this.parentElement.remove()">
+          <i class="fas fa-times"></i>
+        </button>
+      `;
+      container.appendChild(div);
+    }
+
+    // Funções do modal
+    function abrirModal() {
+      productModal.style.display = 'block';
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+      productModal.style.display = 'none';
+      document.body.style.overflow = 'auto';
+      productForm.reset();
+      limparCamposDinamicos();
+    }
+
+    function closeConfirmModal() {
+      confirmModal.style.display = 'none';
+      document.body.style.overflow = 'auto';
+      productToDelete = null;
+    }
+
+    function limparCamposDinamicos() {
+      document.getElementById('additionalImagesContainer').innerHTML = '';
+      document.getElementById('specsContainer').innerHTML = '';
+      document.getElementById('observationsContainer').innerHTML = '';
+      document.getElementById('tagsContainer').innerHTML = '';
+    }
+
+    // Funções CRUD
+    function novoProduto() {
+      document.getElementById('modalProductTitle').textContent = 'Novo Produto';
+      document.getElementById('productId').value = '';
+      abrirModal();
+    }
+
+    function editarProduto(id) {
+      const produto = produtos.find(p => p.id === id);
+      if (!produto) return;
+
+      document.getElementById('modalProductTitle').textContent = 'Editar Produto';
+      document.getElementById('productId').value = produto.id;
+      document.getElementById('productName').value = produto.nome;
+      document.getElementById('productPrice').value = produto.preco;
+      document.getElementById('productDescription').value = produto.descricao;
+      document.getElementById('productImage').value = produto.imagem;
+
+      // Limpar e preencher campos dinâmicos
+      limparCamposDinamicos();
+
+      // Imagens adicionais
+      if (produto.imagens && produto.imagens.length > 0) {
+        produto.imagens.forEach(img => addImageField(img));
+      }
+
+      // Especificações
+      if (produto.especificacoes) {
+        Object.entries(produto.especificacoes).forEach(([key, value]) => {
+          addSpecField(key, value);
+        });
+      }
+
+      // Observações
+      if (produto.observacoes && produto.observacoes.length > 0) {
+        produto.observacoes.forEach(obs => addObservationField(obs));
+      }
+
+      // Tags
+      if (produto.tags && produto.tags.length > 0) {
+        produto.tags.forEach(tag => addTagField(tag));
+      }
+
+      abrirModal();
+    }
+
+    function confirmarExclusao(id) {
+      const produto = produtos.find(p => p.id === id);
+      if (!produto) return;
+
+      productToDelete = id;
+      document.getElementById('productToDeleteName').textContent = produto.nome;
+      confirmModal.style.display = 'block';
+      document.body.style.overflow = 'hidden';
+    }
+
+    function excluirProduto() {
+      if (!productToDelete) return;
+
+      // Simulação de exclusão - substitua pela sua lógica
+      produtos = produtos.filter(p => p.id !== productToDelete);
+      renderizarTabela();
+      showAlert('Produto excluído com sucesso!');
+      closeConfirmModal();
+    }
+
+    // Event Listeners
+    document.getElementById('btnNovoProduto').addEventListener('click', novoProduto);
+    document.querySelector('#productModal .close-btn').addEventListener('click', closeModal);
+    document.querySelector('#confirmModal .close-btn').addEventListener('click', closeConfirmModal);
+    document.getElementById('confirmDeleteBtn').addEventListener('click', excluirProduto);
+
+    productForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      // Coletar dados do formulário
+      const productId = document.getElementById('productId').value;
+      const productData = {
+        nome: document.getElementById('productName').value,
+        preco: parseFloat(document.getElementById('productPrice').value),
+        descricao: document.getElementById('productDescription').value,
+        imagem: document.getElementById('productImage').value,
+        imagens: Array.from(document.querySelectorAll('#additionalImagesContainer input'))
+          .map(input => input.value)
+          .filter(value => value.trim() !== ''),
+        especificacoes: {},
+        observacoes: Array.from(document.querySelectorAll('#observationsContainer input'))
+          .map(input => input.value)
+          .filter(value => value.trim() !== ''),
+        tags: Array.from(document.querySelectorAll('#tagsContainer input'))
+          .map(input => input.value)
+          .filter(value => value.trim() !== '')
+      };
+
+      // Coletar especificações
+      const specInputs = document.querySelectorAll('#specsContainer .spec-input');
+      specInputs.forEach(spec => {
+        const inputs = spec.querySelectorAll('input');
+        const key = inputs[0].value.trim();
+        const value = inputs[1].value.trim();
+        if (key && value) {
+          productData.especificacoes[key] = value;
+        }
+      });
+
+      if (productId) {
+        // Editar produto existente
+        const index = produtos.findIndex(p => p.id === parseInt(productId));
+        if (index !== -1) {
+          produtos[index] = { ...produtos[index], ...productData };
+          showAlert('Produto atualizado com sucesso!');
+        }
+      } else {
+        // Novo produto
+        const newId = Math.max(...produtos.map(p => p.id), 0) + 1;
+        productData.id = newId;
+        produtos.push(productData);
+        showAlert('Produto cadastrado com sucesso!');
+      }
+
+      renderizarTabela();
+      closeModal();
+    });
+
+    // Fechar modais ao clicar fora
+    window.addEventListener('click', (e) => {
+      if (e.target === productModal) closeModal();
+      if (e.target === confirmModal) closeConfirmModal();
+    });
+
+    // Inicializar
+    document.addEventListener('DOMContentLoaded', () => {
+      carregarProdutos();
+    });
+  </script>
+</body>
+</html>
