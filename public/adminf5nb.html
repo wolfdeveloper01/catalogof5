@@ -140,6 +140,17 @@
       background-color: #c0392b;
     }
 
+    .btn-outline {
+      background-color: transparent;
+      border: 1px solid var(--secondary);
+      color: var(--secondary);
+    }
+
+    .btn-outline:hover {
+      background-color: var(--secondary);
+      color: white;
+    }
+
     /* Tabela */
     .table-container {
       background: white;
@@ -564,6 +575,9 @@
     const loadingElement = document.getElementById('loading');
     const alertContainer = document.getElementById('alertContainer');
 
+    // URL do Google Apps Script (SUBSTITUA PELA SUA URL)
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxVmUiuMxMOHmjumKDYLpRWswuLpC69ubL4GkrK2mhiAkbw31o2m72GQCA5b6bNkL32/exec';
+
     // Variáveis globais
     let produtos = [];
     let productToDelete = null;
@@ -580,7 +594,6 @@
       `;
       alertContainer.appendChild(alert);
       
-      // Remove o alerta após 5 segundos
       setTimeout(() => {
         if (alert.parentElement) {
           alert.remove();
@@ -588,58 +601,69 @@
       }, 5000);
     }
 
+    // Função para fazer requisições ao Google Apps Script
+    async function callGoogleScript(action, data = null) {
+      const url = new URL(SCRIPT_URL);
+      
+      if (action === 'get') {
+        url.searchParams.set('callback', 'meuCallback');
+        return new Promise((resolve, reject) => {
+          window.meuCallback = (data) => {
+            delete window.meuCallback;
+            resolve(data);
+          };
+          
+          const script = document.createElement('script');
+          script.src = url.toString();
+          script.onerror = reject;
+          document.head.appendChild(script);
+        });
+      } else {
+        // Para POST requests (editar/deletar)
+        const formData = new FormData();
+        formData.append('action', action);
+        if (data) {
+          formData.append('data', JSON.stringify(data));
+        }
+        
+        try {
+          const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: formData
+          });
+          return await response.json();
+        } catch (error) {
+          throw new Error('Erro na comunicação com o servidor');
+        }
+      }
+    }
+
     // Função para carregar produtos
-    function carregarProdutos() {
-      // Simulação de carregamento - substitua pela sua lógica JSONP
-      setTimeout(() => {
-        // Dados de exemplo - substitua pelos dados reais do seu JSONP
-        produtos = [
-          {
-            id: 1,
-            nome: "Notebook Dell Inspiron 15",
-            preco: 3299.99,
-            descricao: "Notebook Dell com Intel i5 e SSD 512GB",
-            imagem: "https://images.unsplash.com/photo-1593640408182-31c70c8268f5?ixlib=rb-4.0.3&w=400&h=300&fit=crop",
-            imagens: [
-              "https://images.unsplash.com/photo-1593640408182-31c70c8268f5?ixlib=rb-4.0.3&w=400&h=300&fit=crop",
-              "https://images.unsplash.com/photo-1593640408182-31c70c8268f5?ixlib=rb-4.0.3&w=400&h=300&fit=crop"
-            ],
-            especificacoes: {
-              "Processador": "Intel i5",
-              "RAM": "8GB",
-              "SSD": "512GB"
-            },
-            observacoes: [
-              "Garantia 12 meses",
-              "Office ativado"
-            ],
-            tags: ["dell", "notebook", "i5"]
-          },
-          {
-            id: 2,
-            nome: "Mouse Gamer Redragon Cobra",
-            preco: 149.90,
-            descricao: "Mouse gamer com RGB e 7 botões programáveis",
-            imagem: "https://images.unsplash.com/photo-1527814050087-3793815479db?ixlib=rb-4.0.3&w=400&h=300&fit=crop",
-            imagens: [
-              "https://images.unsplash.com/photo-1527814050087-3793815479db?ixlib=rb-4.0.3&w=400&h=300&fit=crop"
-            ],
-            especificacoes: {
-              "DPI": "10000",
-              "Iluminação": "RGB",
-              "Conexão": "USB"
-            },
-            observacoes: [
-              "Garantia 1 ano",
-              "Cabo trançado"
-            ],
-            tags: ["mouse", "gamer", "redragon"]
-          }
-        ];
+    async function carregarProdutos() {
+      try {
+        const produtosData = await callGoogleScript('get');
+        
+        // Processar dados - remove cabeçalho e converte tipos
+        produtos = produtosData.slice(1).map(produto => {
+          return {
+            id: parseInt(produto.id),
+            nome: produto.nome,
+            preco: parseFloat(produto.preco),
+            descricao: produto.descricao,
+            imagem: produto.imagem,
+            imagens: typeof produto.imagens === 'string' ? JSON.parse(produto.imagens) : produto.imagens,
+            especificacoes: typeof produto.especificacoes === 'string' ? JSON.parse(produto.especificacoes) : produto.especificacoes,
+            observacoes: typeof produto.observacoes === 'string' ? JSON.parse(produto.observacoes) : produto.observacoes,
+            tags: typeof produto.tags === 'string' ? JSON.parse(produto.tags) : produto.tags
+          };
+        });
         
         loadingElement.style.display = 'none';
         renderizarTabela();
-      }, 1000);
+      } catch (error) {
+        console.error('Erro ao carregar produtos:', error);
+        loadingElement.innerHTML = '<p>Erro ao carregar produtos. Verifique a conexão.</p>';
+      }
     }
 
     // Função para renderizar a tabela
@@ -661,7 +685,7 @@
         const row = document.createElement('tr');
         row.innerHTML = `
           <td>
-            <img src="${produto.imagem}" alt="${produto.nome}" class="product-image-small">
+            <img src="${produto.imagem}" alt="${produto.nome}" class="product-image-small" onerror="this.src='https://via.placeholder.com/60x60?text=Imagem'">
           </td>
           <td>${produto.nome}</td>
           <td>R$ ${parseFloat(produto.preco).toFixed(2)}</td>
@@ -779,7 +803,6 @@
       document.getElementById('productDescription').value = produto.descricao;
       document.getElementById('productImage').value = produto.imagem;
 
-      // Limpar e preencher campos dinâmicos
       limparCamposDinamicos();
 
       // Imagens adicionais
@@ -817,13 +840,23 @@
       document.body.style.overflow = 'hidden';
     }
 
-    function excluirProduto() {
+    async function excluirProduto() {
       if (!productToDelete) return;
 
-      // Simulação de exclusão - substitua pela sua lógica
-      produtos = produtos.filter(p => p.id !== productToDelete);
-      renderizarTabela();
-      showAlert('Produto excluído com sucesso!');
+      try {
+        const result = await callGoogleScript('delete', { id: productToDelete });
+        
+        if (result.success) {
+          produtos = produtos.filter(p => p.id !== productToDelete);
+          renderizarTabela();
+          showAlert('Produto excluído com sucesso!');
+        } else {
+          showAlert('Erro ao excluir produto: ' + result.message, 'error');
+        }
+      } catch (error) {
+        showAlert('Erro ao excluir produto: ' + error.message, 'error');
+      }
+      
       closeConfirmModal();
     }
 
@@ -833,7 +866,7 @@
     document.querySelector('#confirmModal .close-btn').addEventListener('click', closeConfirmModal);
     document.getElementById('confirmDeleteBtn').addEventListener('click', excluirProduto);
 
-    productForm.addEventListener('submit', function(e) {
+    productForm.addEventListener('submit', async function(e) {
       e.preventDefault();
 
       // Coletar dados do formulário
@@ -866,23 +899,35 @@
         }
       });
 
-      if (productId) {
-        // Editar produto existente
-        const index = produtos.findIndex(p => p.id === parseInt(productId));
-        if (index !== -1) {
-          produtos[index] = { ...produtos[index], ...productData };
-          showAlert('Produto atualizado com sucesso!');
+      try {
+        if (productId) {
+          // Editar produto existente
+          const result = await callGoogleScript('edit', { 
+            id: parseInt(productId), 
+            data: productData 
+          });
+          
+          if (result.success) {
+            // Atualizar localmente
+            const index = produtos.findIndex(p => p.id === parseInt(productId));
+            if (index !== -1) {
+              produtos[index] = { ...produtos[index], ...productData };
+            }
+            showAlert('Produto atualizado com sucesso!');
+          } else {
+            showAlert('Erro ao atualizar produto: ' + result.message, 'error');
+          }
+        } else {
+          // Novo produto - você precisará implementar esta função no Google Apps Script
+          showAlert('Funcionalidade de cadastro ainda não implementada no servidor', 'error');
+          return;
         }
-      } else {
-        // Novo produto
-        const newId = Math.max(...produtos.map(p => p.id), 0) + 1;
-        productData.id = newId;
-        produtos.push(productData);
-        showAlert('Produto cadastrado com sucesso!');
-      }
 
-      renderizarTabela();
-      closeModal();
+        renderizarTabela();
+        closeModal();
+      } catch (error) {
+        showAlert('Erro ao salvar produto: ' + error.message, 'error');
+      }
     });
 
     // Fechar modais ao clicar fora
