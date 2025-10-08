@@ -611,9 +611,76 @@
 
     let produtos = [];
 
-    // Função callback para JSONP
+    // Função callback para JSONP - CORRIGIDA para o formato do seu Google Apps Script
     function meuCallback(data) {
-      produtos = data;
+      // Remove o primeiro item (cabeçalho) e processa os dados
+      const produtosData = data.slice(1).map(produto => {
+        // Converte string de imagens para array se necessário
+        let imagensArray = [];
+        if (typeof produto.imagens === 'string') {
+          try {
+            // Tenta fazer parse se for JSON string
+            imagensArray = JSON.parse(produto.imagens);
+          } catch (e) {
+            // Se não for JSON, usa a imagem principal como fallback
+            imagensArray = [produto.imagem];
+          }
+        } else if (Array.isArray(produto.imagens)) {
+          imagensArray = produto.imagens;
+        } else {
+          imagensArray = [produto.imagem];
+        }
+
+        // Converte string de especificações para objeto se necessário
+        let especificacoesObj = {};
+        if (typeof produto.especificacoes === 'string') {
+          try {
+            especificacoesObj = JSON.parse(produto.especificacoes);
+          } catch (e) {
+            especificacoesObj = {};
+          }
+        } else if (typeof produto.especificacoes === 'object') {
+          especificacoesObj = produto.especificacoes;
+        }
+
+        // Converte string de observações para array se necessário
+        let observacoesArray = [];
+        if (typeof produto.observacoes === 'string') {
+          try {
+            observacoesArray = JSON.parse(produto.observacoes);
+          } catch (e) {
+            observacoesArray = [produto.observacoes];
+          }
+        } else if (Array.isArray(produto.observacoes)) {
+          observacoesArray = produto.observacoes;
+        }
+
+        // Converte string de tags para array se necessário
+        let tagsArray = [];
+        if (typeof produto.tags === 'string') {
+          try {
+            tagsArray = JSON.parse(produto.tags);
+          } catch (e) {
+            tagsArray = produto.tags.split(',').map(tag => tag.trim());
+          }
+        } else if (Array.isArray(produto.tags)) {
+          tagsArray = produto.tags;
+        }
+
+        return {
+          id: parseInt(produto.id),
+          nome: produto.nome,
+          preco: parseFloat(produto.preco),
+          descricao: produto.descricao,
+          imagem: produto.imagem,
+          imagens: imagensArray,
+          especificacoes: especificacoesObj,
+          observacoes: observacoesArray,
+          tags: tagsArray
+        };
+      });
+
+      produtos = produtosData;
       loadingElement.style.display = 'none';
       renderizarProdutos(produtos);
     }
@@ -630,50 +697,9 @@
       // Fallback em caso de erro
       setTimeout(() => {
         if (produtos.length === 0) {
-          loadingElement.innerHTML = '<p>Erro ao carregar produtos. Tentando novamente...</p>';
-          // Tentar carregar dados locais como fallback
-          carregarProdutosLocais();
+          loadingElement.innerHTML = '<p>Erro ao carregar produtos. Verifique a conexão.</p>';
         }
       }, 10000);
-    }
-
-    // Fallback com dados locais
-    function carregarProdutosLocais() {
-      const produtosLocais = [
-        {
-          id: 1,
-          nome: "Notebook Dell Inspiron 15",
-          preco: 3299.99,
-          descricao: "Notebook Dell Inspiron 15 com processador Intel Core i5, ideal para trabalho e estudos.",
-          imagem: "https://images.unsplash.com/photo-1593640408182-31c70c8268f5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-          imagens: [
-            "https://images.unsplash.com/photo-1593640408182-31c70c8268f5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-            "https://images.unsplash.com/photo-1593640408182-31c70c8268f5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-            "https://images.unsplash.com/photo-1593640408182-31c70c8268f5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
-          ],
-          especificacoes: {
-            "Processador": "Intel Core i5 10ª geração",
-            "Memória RAM": "8GB DDR4",
-            "Armazenamento": "SSD 256GB",
-            "Tela": "15.6\" Full HD",
-            "Sistema Operacional": "Windows 11",
-            "Bateria": "Até 8 horas de duração"
-          },
-          observacoes: [
-            "Pacote Office Completo Ativado",
-            "Windows Ativado",
-            "Adobe Visualizador de PDF",
-            "Antivírus Original da Microsoft",
-            "Garantia de 12 meses",
-            "Suporte técnico gratuito por 3 meses"
-          ],
-          tags: ["Dell", "Intel i5", "SSD", "8GB RAM"]
-        }
-      ];
-      
-      produtos = produtosLocais;
-      loadingElement.style.display = 'none';
-      renderizarProdutos(produtos);
     }
 
     // Função para formatar preço
@@ -703,7 +729,9 @@
             <div class="product-price">${formatarPreco(produto.preco)}</div>
             <p class="product-description">${produto.descricao}</p>
             <div class="product-specs">
-              ${produto.tags ? produto.tags.map(tag => `<span class="spec-tag">${tag}</span>`).join('') : ''}
+              ${produto.tags && produto.tags.length > 0 ? 
+                produto.tags.map(tag => `<span class="spec-tag">${tag}</span>`).join('') : 
+                ''}
             </div>
             <div class="product-actions">
               <button class="btn btn-primary" data-id="${produto.id}">Ver Detalhes</button>
@@ -737,7 +765,7 @@
       
       // Limpar e preencher especificações
       modalProductSpecs.innerHTML = '';
-      if (produto.especificacoes) {
+      if (produto.especificacoes && Object.keys(produto.especificacoes).length > 0) {
         for (const [chave, valor] of Object.entries(produto.especificacoes)) {
           const specItem = document.createElement('div');
           specItem.className = 'spec-item';
@@ -747,23 +775,27 @@
           `;
           modalProductSpecs.appendChild(specItem);
         }
+      } else {
+        modalProductSpecs.innerHTML = '<p>Nenhuma especificação disponível.</p>';
       }
       
       // Limpar e preencher observações
       modalProductObservations.innerHTML = '';
-      if (produto.observacoes && Array.isArray(produto.observacoes)) {
+      if (produto.observacoes && produto.observacoes.length > 0) {
         produto.observacoes.forEach(obs => {
           const obsItem = document.createElement('li');
           obsItem.textContent = obs;
           modalProductObservations.appendChild(obsItem);
         });
+      } else {
+        modalProductObservations.innerHTML = '<li>Nenhuma observação disponível.</li>';
       }
       
       // Configurar galeria de imagens
       modalMainImage.src = produto.imagem;
       imageThumbnails.innerHTML = '';
       
-      if (produto.imagens && Array.isArray(produto.imagens)) {
+      if (produto.imagens && produto.imagens.length > 0) {
         produto.imagens.forEach((imagem, index) => {
           const thumbnail = document.createElement('img');
           thumbnail.src = imagem;
