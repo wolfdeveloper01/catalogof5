@@ -1,202 +1,824 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Catálogo de Produtos</title>
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    background: #0f0f0f;
-    color: #fff;
-    margin: 0;
-    padding: 0;
-  }
-  header {
-    background: #1f1f1f;
-    padding: 20px;
-    text-align: center;
-    font-size: 22px;
-    font-weight: bold;
-  }
-  #busca {
-    width: 90%;
-    max-width: 600px;
-    margin: 20px auto;
-    display: block;
-    padding: 10px;
-    border-radius: 8px;
-    border: none;
-    font-size: 16px;
-  }
-  #catalogo {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 20px;
-    padding: 20px;
-  }
-  .produto {
-    background: #1c1c1c;
-    border-radius: 10px;
-    overflow: hidden;
-    cursor: pointer;
-    transition: 0.3s;
-  }
-  .produto:hover {
-    transform: scale(1.05);
-    background: #272727;
-  }
-  .produto img {
-    width: 100%;
-    height: 180px;
-    object-fit: cover;
-  }
-  .produto .info {
-    padding: 10px;
-  }
-  .produto h3 {
-    margin: 5px 0;
-    font-size: 18px;
-  }
-  .produto p {
-    margin: 0;
-    color: #aaa;
-  }
-  /* Modal */
-  .modal {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.8);
-    justify-content: center;
-    align-items: center;
-    z-index: 999;
-  }
-  .modal-content {
-    background: #1a1a1a;
-    border-radius: 10px;
-    max-width: 600px;
-    width: 90%;
-    padding: 20px;
-    position: relative;
-  }
-  .fechar {
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    cursor: pointer;
-    font-size: 22px;
-  }
-  .modal-content img {
-    width: 100%;
-    border-radius: 8px;
-  }
-  .preco {
-    color: #0f0;
-    font-weight: bold;
-    font-size: 20px;
-    margin-top: 10px;
-  }
-</style>
-</head>
-<body>
-  <header>Catálogo de Produtos</header>
-  <input type="text" id="busca" placeholder="Pesquisar produto...">
-  <div id="catalogo"></div>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>F5 Informática Caxias - Catálogo Profissional</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* Reset e configurações gerais */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
 
-  <div id="modal" class="modal">
-    <div class="modal-content">
-      <span class="fechar">&times;</span>
-      <img id="modal-imagem" src="" alt="">
-      <h2 id="modal-nome"></h2>
-      <p id="modal-descricao"></p>
-      <p class="preco" id="modal-preco"></p>
-      <div id="modal-especificacoes"></div>
-      <div id="modal-observacoes"></div>
-    </div>
-  </div>
+    :root {
+      --primary: #2c3e50;
+      --secondary: #3498db;
+      --accent: #e74c3c;
+      --light: #ecf0f1;
+      --dark: #2c3e50;
+      --gray: #95a5a6;
+      --success: #2ecc71;
+      --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      --transition: all 0.3s ease;
+    }
 
-<script>
-  const API_URL = "https://script.google.com/macros/s/AKfycbxVmUiuMxMOHmjumKDYLpRWswuLpC69ubL4GkrK2mhiAkbw31o2m72GQCA5b6bNkL32/exec?callback=meuCallback";
+    body {
+      background-color: #f8f9fa;
+      color: #333;
+      line-height: 1.6;
+    }
 
-  const catalogo = document.getElementById("catalogo");
-  const busca = document.getElementById("busca");
-  const modal = document.getElementById("modal");
-  const fechar = document.querySelector(".fechar");
-  const modalImg = document.getElementById("modal-imagem");
-  const modalNome = document.getElementById("modal-nome");
-  const modalDescricao = document.getElementById("modal-descricao");
-  const modalPreco = document.getElementById("modal-preco");
-  const modalEspecificacoes = document.getElementById("modal-especificacoes");
-  const modalObservacoes = document.getElementById("modal-observacoes");
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, var(--primary), var(--dark));
+      color: white;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: var(--shadow);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
 
-  let produtos = [];
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
 
-  function meuCallback(data) {
-    produtos = data;
-    renderizar(produtos);
-  }
+    .logo h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
 
-  function carregarProdutosJSONP() {
-    const script = document.createElement('script');
-    script.src = API_URL;
-    document.body.appendChild(script);
-  }
+    .logo-icon {
+      font-size: 1.8rem;
+    }
 
-  function renderizar(lista) {
-    catalogo.innerHTML = "";
-    lista.forEach(p => {
-      const item = document.createElement("div");
-      item.className = "produto";
-      item.innerHTML = `
-        <img src="${p.imagem}" alt="${p.nome}">
-        <div class="info">
-          <h3>${p.nome}</h3>
-          <p>R$ ${parseFloat(p.preco).toFixed(2)}</p>
-        </div>
-      `;
-      item.addEventListener("click", () => abrirModal(p));
-      catalogo.appendChild(item);
-    });
-  }
+    .nav-links {
+      display: flex;
+      gap: 1.5rem;
+    }
 
-  function abrirModal(p) {
-    modalImg.src = p.imagem;
-    modalNome.textContent = p.nome;
-    modalDescricao.textContent = p.descricao || "";
-    modalPreco.textContent = "R$ " + parseFloat(p.preco).toFixed(2);
+    .nav-links a {
+      color: white;
+      text-decoration: none;
+      font-weight: 500;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      transition: var(--transition);
+    }
 
-    modalEspecificacoes.innerHTML = "";
-    if (p.especificacoes) {
-      modalEspecificacoes.innerHTML = "<h4>Especificações:</h4>";
-      for (const [k, v] of Object.entries(p.especificacoes)) {
-        modalEspecificacoes.innerHTML += `<p>${k}: ${v}</p>`;
+    .nav-links a:hover, .nav-links a.ativo {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Hero Section */
+    .hero {
+      background: linear-gradient(rgba(44, 62, 80, 0.8), rgba(44, 62, 80, 0.9)), url('https://images.unsplash.com/photo-1499750310107-5fef28a66643?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80');
+      background-size: cover;
+      background-position: center;
+      color: white;
+      text-align: center;
+      padding: 4rem 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .hero h2 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      font-weight: 700;
+    }
+
+    .hero p {
+      font-size: 1.2rem;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    /* Catálogo */
+    .catalog-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      margin-bottom: 1rem;
+    }
+
+    .catalog-header h2 {
+      color: var(--primary);
+      font-size: 1.8rem;
+    }
+
+    .search-container {
+      position: relative;
+      width: 300px;
+    }
+
+    .search-container input {
+      width: 100%;
+      padding: 0.8rem 1rem 0.8rem 2.5rem;
+      border: 1px solid #ddd;
+      border-radius: 30px;
+      font-size: 1rem;
+      transition: var(--transition);
+    }
+
+    .search-container input:focus {
+      outline: none;
+      border-color: var(--secondary);
+      box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--gray);
+    }
+
+    /* Grid de produtos */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.5rem;
+      padding: 0 2rem 2rem;
+    }
+
+    .product-card {
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      transition: var(--transition);
+      cursor: pointer;
+    }
+
+    .product-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .product-image {
+      height: 200px;
+      width: 100%;
+      object-fit: cover;
+    }
+
+    .product-info {
+      padding: 1.2rem;
+    }
+
+    .product-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--primary);
+    }
+
+    .product-price {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+    }
+
+    .product-description {
+      color: var(--gray);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .product-specs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .spec-tag {
+      background-color: var(--light);
+      color: var(--dark);
+      padding: 0.3rem 0.7rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+
+    .product-actions {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .btn {
+      padding: 0.6rem 1.2rem;
+      border: none;
+      border-radius: 4px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .btn-primary {
+      background-color: var(--secondary);
+      color: white;
+      flex: 1;
+      margin-right: 0.5rem;
+    }
+
+    .btn-primary:hover {
+      background-color: #2980b9;
+    }
+
+    .btn-outline {
+      background-color: transparent;
+      border: 1px solid var(--secondary);
+      color: var(--secondary);
+    }
+
+    .btn-outline:hover {
+      background-color: var(--secondary);
+      color: white;
+    }
+
+    /* Modal de detalhes do produto */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.8);
+      z-index: 2000;
+      overflow-y: auto;
+      padding: 2rem;
+    }
+
+    .modal-content {
+      background-color: white;
+      max-width: 1000px;
+      margin: 0 auto;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      animation: modalFadeIn 0.3s ease;
+    }
+
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem;
+      border-bottom: 1px solid #eee;
+    }
+
+    .modal-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--gray);
+      transition: var(--transition);
+    }
+
+    .close-btn:hover {
+      color: var(--accent);
+    }
+
+    .modal-body {
+      display: flex;
+      flex-direction: column;
+    }
+
+    @media (min-width: 768px) {
+      .modal-body {
+        flex-direction: row;
       }
     }
 
-    modalObservacoes.innerHTML = "";
-    if (p.observacoes && Array.isArray(p.observacoes)) {
-      modalObservacoes.innerHTML = "<h4>Observações:</h4><ul>";
-      p.observacoes.forEach(o => modalObservacoes.innerHTML += `<li>${o}</li>`);
-      modalObservacoes.innerHTML += "</ul>";
+    .product-gallery {
+      flex: 1;
+      padding: 1.5rem;
     }
 
-    modal.style.display = "flex";
-  }
+    .main-image {
+      width: 100%;
+      height: 300px;
+      object-fit: contain;
+      margin-bottom: 1rem;
+      border-radius: 8px;
+      background-color: #f8f9fa;
+    }
 
-  fechar.onclick = () => modal.style.display = "none";
-  window.onclick = e => { if (e.target === modal) modal.style.display = "none"; }
+    .image-thumbnails {
+      display: flex;
+      gap: 0.5rem;
+      overflow-x: auto;
+      padding-bottom: 0.5rem;
+    }
 
-  busca.addEventListener("input", e => {
-    const termo = e.target.value.toLowerCase();
-    const filtrados = produtos.filter(p =>
-      p.nome.toLowerCase().includes(termo) ||
-      (p.descricao && p.descricao.toLowerCase().includes(termo))
-    );
-    renderizar(filtrados);
-  });
+    .thumbnail {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 4px;
+      cursor: pointer;
+      opacity: 0.7;
+      transition: var(--transition);
+    }
 
-  document.addEventListener("DOMContentLoaded", carregarProdutosJSONP);
-</script>
+    .thumbnail:hover, .thumbnail.active {
+      opacity: 1;
+      border: 2px solid var(--secondary);
+    }
+
+    .product-details {
+      flex: 1;
+      padding: 1.5rem;
+      background-color: #f8f9fa;
+    }
+
+    .detail-price {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 1rem;
+    }
+
+    .detail-description {
+      margin-bottom: 1.5rem;
+      color: #555;
+    }
+
+    .specs-list {
+      margin-bottom: 1.5rem;
+    }
+
+    .specs-list h3 {
+      margin-bottom: 0.8rem;
+      color: var(--primary);
+    }
+
+    .spec-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .spec-name {
+      font-weight: 500;
+    }
+
+    .spec-value {
+      color: #555;
+    }
+
+    .observations {
+      background-color: white;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      border-left: 4px solid var(--success);
+    }
+
+    .observations h3 {
+      margin-bottom: 0.8rem;
+      color: var(--primary);
+    }
+
+    .observation-list {
+      list-style-type: none;
+    }
+
+    .observation-list li {
+      padding: 0.3rem 0;
+      display: flex;
+      align-items: center;
+    }
+
+    .observation-list li:before {
+      content: "✓";
+      color: var(--success);
+      font-weight: bold;
+      margin-right: 0.5rem;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .btn-large {
+      padding: 0.8rem 1.5rem;
+      font-size: 1rem;
+    }
+
+    .btn-accent {
+      background-color: var(--accent);
+      color: white;
+    }
+
+    .btn-accent:hover {
+      background-color: #c0392b;
+    }
+
+    /* Loading */
+    .loading {
+      text-align: center;
+      padding: 2rem;
+      color: var(--gray);
+    }
+
+    .loading-spinner {
+      border: 4px solid rgba(0, 0, 0, 0.1);
+      border-left-color: var(--secondary);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 1rem;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Footer */
+    footer {
+      background-color: var(--primary);
+      color: white;
+      text-align: center;
+      padding: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    /* Responsividade */
+    @media (max-width: 768px) {
+      .header {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1rem;
+      }
+
+      .catalog-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+      }
+
+      .search-container {
+        width: 100%;
+      }
+
+      .hero h2 {
+        font-size: 2rem;
+      }
+
+      .hero p {
+        font-size: 1rem;
+      }
+
+      .grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        padding: 0 1rem 1rem;
+      }
+
+      .modal {
+        padding: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- HEADER -->
+  <header class="header">
+    <div class="logo">
+      <i class="fas fa-laptop-code logo-icon"></i>
+      <h1>F5 Informática Caxias</h1>
+    </div>
+    <nav class="nav-links">
+      <a href="index.html" class="ativo">Catálogo</a>
+      <a href="admin.html">Admin</a>
+      <a href="#"><i class="fas fa-shopping-cart"></i> Carrinho</a>
+    </nav>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <h2>Notebooks de Alta Performance</h2>
+    <p>Encontre o equipamento perfeito para trabalho, estudos e entretenimento com a qualidade e confiança F5 Informática</p>
+  </section>
+
+  <!-- CATÁLOGO -->
+  <main>
+    <div class="catalog-header">
+      <h2><i class="fas fa-laptop"></i> Nossos Produtos</h2>
+      <div class="search-container">
+        <i class="fas fa-search search-icon"></i>
+        <input type="text" id="busca" placeholder="Buscar por modelo, marca ou especificação...">
+      </div>
+    </div>
+    
+    <!-- Loading -->
+    <div id="loading" class="loading">
+      <div class="loading-spinner"></div>
+      <p>Carregando produtos...</p>
+    </div>
+    
+    <div id="catalogo" class="grid"></div>
+  </main>
+
+  <!-- MODAL DE DETALHES DO PRODUTO -->
+  <div id="productModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modalProductTitle">Detalhes do Produto</h2>
+        <button class="close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="product-gallery">
+          <img id="modalMainImage" class="main-image" src="" alt="Imagem do produto">
+          <div class="image-thumbnails" id="imageThumbnails"></div>
+        </div>
+        <div class="product-details">
+          <div class="detail-price" id="modalProductPrice">R$ 0,00</div>
+          <p class="detail-description" id="modalProductDescription">Descrição do produto</p>
+          
+          <div class="specs-list">
+            <h3>Especificações Técnicas</h3>
+            <div id="modalProductSpecs"></div>
+          </div>
+          
+          <div class="observations">
+            <h3>Observações</h3>
+            <ul class="observation-list" id="modalProductObservations"></ul>
+          </div>
+          
+          <div class="modal-actions">
+            <button class="btn btn-primary btn-large"><i class="fas fa-shopping-cart"></i> Adicionar ao Carrinho</button>
+            <button class="btn btn-accent btn-large"><i class="fas fa-credit-card"></i> Comprar Agora</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>© 2025 F5 Informática Caxias | Todos os direitos reservados</p>
+    <p><i class="fas fa-map-marker-alt"></i> Rua Exemplo, 123 - Centro, Caxias do Sul</p>
+  </footer>
+
+  <script>
+    // Elementos DOM
+    const catalogoElement = document.getElementById('catalogo');
+    const buscaElement = document.getElementById('busca');
+    const modal = document.getElementById('productModal');
+    const closeBtn = document.querySelector('.close-btn');
+    const modalProductTitle = document.getElementById('modalProductTitle');
+    const modalProductPrice = document.getElementById('modalProductPrice');
+    const modalProductDescription = document.getElementById('modalProductDescription');
+    const modalProductSpecs = document.getElementById('modalProductSpecs');
+    const modalProductObservations = document.getElementById('modalProductObservations');
+    const modalMainImage = document.getElementById('modalMainImage');
+    const imageThumbnails = document.getElementById('imageThumbnails');
+    const loadingElement = document.getElementById('loading');
+
+    let produtos = [];
+
+    // Função callback para JSONP
+    function meuCallback(data) {
+      produtos = data;
+      loadingElement.style.display = 'none';
+      renderizarProdutos(produtos);
+    }
+
+    // Função para carregar produtos via JSONP
+    function carregarProdutos() {
+      // Substitua pela URL real do seu Google Apps Script
+      const url = 'https://script.google.com/macros/s/AKfycbxVmUiuMxMOHmjumKDYLpRWswuLpC69ubL4GkrK2mhiAkbw31o2m72GQCA5b6bNkL32/exec?callback=meuCallback';
+      
+      const script = document.createElement('script');
+      script.src = url;
+      document.body.appendChild(script);
+      
+      // Fallback em caso de erro
+      setTimeout(() => {
+        if (produtos.length === 0) {
+          loadingElement.innerHTML = '<p>Erro ao carregar produtos. Tentando novamente...</p>';
+          // Tentar carregar dados locais como fallback
+          carregarProdutosLocais();
+        }
+      }, 10000);
+    }
+
+    // Fallback com dados locais
+    function carregarProdutosLocais() {
+      const produtosLocais = [
+        {
+          id: 1,
+          nome: "Notebook Dell Inspiron 15",
+          preco: 3299.99,
+          descricao: "Notebook Dell Inspiron 15 com processador Intel Core i5, ideal para trabalho e estudos.",
+          imagem: "https://images.unsplash.com/photo-1593640408182-31c70c8268f5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+          imagens: [
+            "https://images.unsplash.com/photo-1593640408182-31c70c8268f5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+            "https://images.unsplash.com/photo-1593640408182-31c70c8268f5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+            "https://images.unsplash.com/photo-1593640408182-31c70c8268f5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+          ],
+          especificacoes: {
+            "Processador": "Intel Core i5 10ª geração",
+            "Memória RAM": "8GB DDR4",
+            "Armazenamento": "SSD 256GB",
+            "Tela": "15.6\" Full HD",
+            "Sistema Operacional": "Windows 11",
+            "Bateria": "Até 8 horas de duração"
+          },
+          observacoes: [
+            "Pacote Office Completo Ativado",
+            "Windows Ativado",
+            "Adobe Visualizador de PDF",
+            "Antivírus Original da Microsoft",
+            "Garantia de 12 meses",
+            "Suporte técnico gratuito por 3 meses"
+          ],
+          tags: ["Dell", "Intel i5", "SSD", "8GB RAM"]
+        }
+      ];
+      
+      produtos = produtosLocais;
+      loadingElement.style.display = 'none';
+      renderizarProdutos(produtos);
+    }
+
+    // Função para formatar preço
+    function formatarPreco(preco) {
+      return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+      }).format(preco);
+    }
+
+    // Função para renderizar os produtos
+    function renderizarProdutos(produtosParaRenderizar) {
+      catalogoElement.innerHTML = '';
+      
+      if (produtosParaRenderizar.length === 0) {
+        catalogoElement.innerHTML = '<div class="loading"><p>Nenhum produto encontrado.</p></div>';
+        return;
+      }
+      
+      produtosParaRenderizar.forEach(produto => {
+        const productCard = document.createElement('div');
+        productCard.className = 'product-card';
+        productCard.innerHTML = `
+          <img src="${produto.imagem}" alt="${produto.nome}" class="product-image">
+          <div class="product-info">
+            <h3 class="product-title">${produto.nome}</h3>
+            <div class="product-price">${formatarPreco(produto.preco)}</div>
+            <p class="product-description">${produto.descricao}</p>
+            <div class="product-specs">
+              ${produto.tags ? produto.tags.map(tag => `<span class="spec-tag">${tag}</span>`).join('') : ''}
+            </div>
+            <div class="product-actions">
+              <button class="btn btn-primary" data-id="${produto.id}">Ver Detalhes</button>
+              <button class="btn btn-outline">Adicionar</button>
+            </div>
+          </div>
+        `;
+        
+        catalogoElement.appendChild(productCard);
+      });
+      
+      // Adicionar event listeners aos botões "Ver Detalhes"
+      document.querySelectorAll('.btn-primary[data-id]').forEach(button => {
+        button.addEventListener('click', (e) => {
+          const productId = parseInt(e.target.getAttribute('data-id'));
+          abrirModalProduto(productId);
+        });
+      });
+    }
+
+    // Função para abrir o modal com os detalhes do produto
+    function abrirModalProduto(productId) {
+      const produto = produtos.find(p => p.id === productId);
+      
+      if (!produto) return;
+      
+      // Preencher informações do produto no modal
+      modalProductTitle.textContent = produto.nome;
+      modalProductPrice.textContent = formatarPreco(produto.preco);
+      modalProductDescription.textContent = produto.descricao;
+      
+      // Limpar e preencher especificações
+      modalProductSpecs.innerHTML = '';
+      if (produto.especificacoes) {
+        for (const [chave, valor] of Object.entries(produto.especificacoes)) {
+          const specItem = document.createElement('div');
+          specItem.className = 'spec-item';
+          specItem.innerHTML = `
+            <span class="spec-name">${chave}</span>
+            <span class="spec-value">${valor}</span>
+          `;
+          modalProductSpecs.appendChild(specItem);
+        }
+      }
+      
+      // Limpar e preencher observações
+      modalProductObservations.innerHTML = '';
+      if (produto.observacoes && Array.isArray(produto.observacoes)) {
+        produto.observacoes.forEach(obs => {
+          const obsItem = document.createElement('li');
+          obsItem.textContent = obs;
+          modalProductObservations.appendChild(obsItem);
+        });
+      }
+      
+      // Configurar galeria de imagens
+      modalMainImage.src = produto.imagem;
+      imageThumbnails.innerHTML = '';
+      
+      if (produto.imagens && Array.isArray(produto.imagens)) {
+        produto.imagens.forEach((imagem, index) => {
+          const thumbnail = document.createElement('img');
+          thumbnail.src = imagem;
+          thumbnail.alt = `${produto.nome} - Imagem ${index + 1}`;
+          thumbnail.className = `thumbnail ${index === 0 ? 'active' : ''}`;
+          thumbnail.addEventListener('click', () => {
+            modalMainImage.src = imagem;
+            document.querySelectorAll('.thumbnail').forEach(thumb => thumb.classList.remove('active'));
+            thumbnail.classList.add('active');
+          });
+          imageThumbnails.appendChild(thumbnail);
+        });
+      }
+      
+      // Mostrar o modal
+      modal.style.display = 'block';
+      document.body.style.overflow = 'hidden';
+    }
+
+    // Fechar modal
+    closeBtn.addEventListener('click', () => {
+      modal.style.display = 'none';
+      document.body.style.overflow = 'auto';
+    });
+
+    // Fechar modal ao clicar fora
+    window.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+      }
+    });
+
+    // Funcionalidade de busca
+    buscaElement.addEventListener('input', (e) => {
+      const termo = e.target.value.toLowerCase();
+      
+      if (termo === '') {
+        renderizarProdutos(produtos);
+        return;
+      }
+      
+      const produtosFiltrados = produtos.filter(produto => 
+        produto.nome.toLowerCase().includes(termo) ||
+        (produto.descricao && produto.descricao.toLowerCase().includes(termo)) ||
+        (produto.tags && produto.tags.some(tag => tag.toLowerCase().includes(termo)))
+      );
+      
+      renderizarProdutos(produtosFiltrados);
+    });
+
+    // Inicializar a página
+    document.addEventListener('DOMContentLoaded', () => {
+      carregarProdutos();
+    });
+  </script>
 </body>
 </html>
