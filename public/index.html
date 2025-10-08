@@ -130,12 +130,14 @@ const fechar = document.querySelector(".fechar");
 
 let produtos = [];
 
-// URL da API da planilha (troque pela sua)
-const API_URL = "https://script.google.com/macros/s/AKfycbxVmUiuMxMOHmjumKDYLpRWswuLpC69ubL4GkrK2mhiAkbw31o2m72GQCA5b6bNkL32/exec";
+// URL da API da planilha
+const API_URL = "https://script.google.com/macros/s/SEU_ID/exec";
 
+// Carrega produtos da API
 async function carregarProdutos() {
   try {
     const resposta = await fetch(API_URL);
+    if (!resposta.ok) throw new Error("Falha na resposta da API");
     produtos = await resposta.json();
     renderizar(produtos);
   } catch (e) {
@@ -144,16 +146,22 @@ async function carregarProdutos() {
   }
 }
 
+// Renderiza a lista de produtos
 function renderizar(lista) {
   catalogo.innerHTML = "";
+  if (lista.length === 0) {
+    catalogo.innerHTML = "<p>Nenhum produto encontrado.</p>";
+    return;
+  }
+
   lista.forEach(p => {
     const item = document.createElement("div");
     item.className = "produto";
     item.innerHTML = `
-      <img src="${p.imagem}" alt="${p.nome}">
+      <img src="${p.imagem || 'https://via.placeholder.com/150'}" alt="${p.nome || 'Produto'}">
       <div class="info">
-        <h3>${p.nome}</h3>
-        <p>R$ ${parseFloat(p.preco).toFixed(2)}</p>
+        <h3>${p.nome || 'Produto sem nome'}</h3>
+        <p>R$ ${p.preco ? parseFloat(p.preco).toFixed(2) : '0,00'}</p>
       </div>
     `;
     item.addEventListener("click", () => abrirModal(p));
@@ -161,11 +169,12 @@ function renderizar(lista) {
   });
 }
 
+// Abre modal com detalhes do produto
 function abrirModal(p) {
-  modalImg.src = p.imagem;
-  modalNome.textContent = p.nome;
-  modalDescricao.textContent = p.descricao || "";
-  modalPreco.textContent = "R$ " + parseFloat(p.preco).toFixed(2);
+  modalImg.src = p.imagem || 'https://via.placeholder.com/300';
+  modalNome.textContent = p.nome || 'Produto sem nome';
+  modalDescricao.textContent = p.descricao || '';
+  modalPreco.textContent = "R$ " + (p.preco ? parseFloat(p.preco).toFixed(2) : '0,00');
 
   modalEspecificacoes.innerHTML = "";
   if (p.especificacoes) {
@@ -176,7 +185,7 @@ function abrirModal(p) {
   }
 
   modalObservacoes.innerHTML = "";
-  if (p.observacoes && Array.isArray(p.observacoes)) {
+  if (p.observacoes && Array.isArray(p.observacoes) && p.observacoes.length) {
     modalObservacoes.innerHTML = "<h4>Observações:</h4><ul>";
     p.observacoes.forEach(o => modalObservacoes.innerHTML += `<li>${o}</li>`);
     modalObservacoes.innerHTML += "</ul>";
@@ -185,18 +194,21 @@ function abrirModal(p) {
   modal.style.display = "flex";
 }
 
+// Fecha modal
 fechar.onclick = () => modal.style.display = "none";
 window.onclick = e => { if (e.target === modal) modal.style.display = "none"; }
 
+// Busca produtos
 busca.addEventListener("input", e => {
   const termo = e.target.value.toLowerCase();
   const filtrados = produtos.filter(p => 
-    p.nome.toLowerCase().includes(termo) ||
+    (p.nome && p.nome.toLowerCase().includes(termo)) ||
     (p.descricao && p.descricao.toLowerCase().includes(termo))
   );
   renderizar(filtrados);
 });
 
+// Carrega produtos ao iniciar
 document.addEventListener("DOMContentLoaded", carregarProdutos);
 </script>
 </body>
