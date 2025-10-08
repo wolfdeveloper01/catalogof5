@@ -298,39 +298,11 @@
       flex: 1;
     }
 
-    .array-items {
-      margin-top: 0.5rem;
-    }
-
-    .array-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0.5rem;
-      background-color: var(--light);
-      border-radius: 4px;
-      margin-bottom: 0.25rem;
-    }
-
     .spec-input {
       display: grid;
       grid-template-columns: 1fr 1fr auto;
       gap: 0.5rem;
       margin-bottom: 0.5rem;
-    }
-
-    .spec-items {
-      margin-top: 0.5rem;
-    }
-
-    .spec-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0.5rem;
-      background-color: var(--light);
-      border-radius: 4px;
-      margin-bottom: 0.25rem;
     }
 
     /* Alertas */
@@ -439,6 +411,7 @@
       <table class="products-table">
         <thead>
           <tr>
+            <th>ID</th>
             <th>Imagem</th>
             <th>Nome</th>
             <th>Preço</th>
@@ -606,6 +579,7 @@
       const url = new URL(SCRIPT_URL);
       
       if (action === 'get') {
+        // GET para listar produtos (JSONP)
         url.searchParams.set('callback', 'meuCallback');
         return new Promise((resolve, reject) => {
           window.meuCallback = (data) => {
@@ -615,12 +589,12 @@
           
           const script = document.createElement('script');
           script.src = url.toString();
-          script.onerror = reject;
+          script.onerror = () => reject(new Error('Erro ao carregar produtos'));
           document.head.appendChild(script);
         });
       } else {
-        // Para POST requests (editar/deletar)
-        const formData = new FormData();
+        // POST para outras ações (add, edit, delete)
+        const formData = new URLSearchParams();
         formData.append('action', action);
         if (data) {
           formData.append('data', JSON.stringify(data));
@@ -631,7 +605,8 @@
             method: 'POST',
             body: formData
           });
-          return await response.json();
+          const result = await response.json();
+          return result;
         } catch (error) {
           throw new Error('Erro na comunicação com o servidor');
         }
@@ -641,20 +616,33 @@
     // Função para carregar produtos
     async function carregarProdutos() {
       try {
+        loadingElement.style.display = 'block';
         const produtosData = await callGoogleScript('get');
         
-        // Processar dados - remove cabeçalho e converte tipos
-        produtos = produtosData.slice(1).map(produto => {
+        // Processar dados do Google Sheets
+        produtos = produtosData.map(produto => {
+          // Converter strings JSON para objetos/arrays
+          const processValue = (value) => {
+            if (typeof value === 'string') {
+              try {
+                return JSON.parse(value);
+              } catch (e) {
+                return value;
+              }
+            }
+            return value;
+          };
+
           return {
             id: parseInt(produto.id),
             nome: produto.nome,
             preco: parseFloat(produto.preco),
             descricao: produto.descricao,
             imagem: produto.imagem,
-            imagens: typeof produto.imagens === 'string' ? JSON.parse(produto.imagens) : produto.imagens,
-            especificacoes: typeof produto.especificacoes === 'string' ? JSON.parse(produto.especificacoes) : produto.especificacoes,
-            observacoes: typeof produto.observacoes === 'string' ? JSON.parse(produto.observacoes) : produto.observacoes,
-            tags: typeof produto.tags === 'string' ? JSON.parse(produto.tags) : produto.tags
+            imagens: processValue(produto.imagens) || [],
+            especificacoes: processValue(produto.especificacoes) || {},
+            observacoes: processValue(produto.observacoes) || [],
+            tags: processValue(produto.tags) || []
           };
         });
         
@@ -662,7 +650,11 @@
         renderizarTabela();
       } catch (error) {
         console.error('Erro ao carregar produtos:', error);
-        loadingElement.innerHTML = '<p>Erro ao carregar produtos. Verifique a conexão.</p>';
+        loadingElement.innerHTML = `
+          <div class="alert alert-error">
+            Erro ao carregar produtos: ${error.message}
+          </div>
+        `;
       }
     }
 
@@ -673,7 +665,7 @@
       if (produtos.length === 0) {
         productsTableBody.innerHTML = `
           <tr>
-            <td colspan="5" style="text-align: center; padding: 2rem;">
+            <td colspan="6" style="text-align: center; padding: 2rem;">
               Nenhum produto cadastrado.
             </td>
           </tr>
@@ -684,10 +676,11 @@
       produtos.forEach(produto => {
         const row = document.createElement('tr');
         row.innerHTML = `
+          <td>${produto.id}</td>
           <td>
             <img src="${produto.imagem}" alt="${produto.nome}" class="product-image-small" onerror="this.src='https://via.placeholder.com/60x60?text=Imagem'">
           </td>
-          <td>${produto.nome}</td>
+          <td><strong>${produto.nome}</strong></td>
           <td>R$ ${parseFloat(produto.preco).toFixed(2)}</td>
           <td>${produto.descricao.substring(0, 50)}${produto.descricao.length > 50 ? '...' : ''}</td>
           <td>
@@ -740,206 +733,4 @@
       div.innerHTML = `
         <input type="text" class="form-control" value="${value}" placeholder="Observação">
         <button type="button" class="btn btn-danger" onclick="this.parentElement.remove()">
-          <i class="fas fa-times"></i>
-        </button>
-      `;
-      container.appendChild(div);
-    }
-
-    function addTagField(value = '') {
-      const container = document.getElementById('tagsContainer');
-      const div = document.createElement('div');
-      div.className = 'array-input';
-      div.innerHTML = `
-        <input type="text" class="form-control" value="${value}" placeholder="Tag">
-        <button type="button" class="btn btn-danger" onclick="this.parentElement.remove()">
-          <i class="fas fa-times"></i>
-        </button>
-      `;
-      container.appendChild(div);
-    }
-
-    // Funções do modal
-    function abrirModal() {
-      productModal.style.display = 'block';
-      document.body.style.overflow = 'hidden';
-    }
-
-    function closeModal() {
-      productModal.style.display = 'none';
-      document.body.style.overflow = 'auto';
-      productForm.reset();
-      limparCamposDinamicos();
-    }
-
-    function closeConfirmModal() {
-      confirmModal.style.display = 'none';
-      document.body.style.overflow = 'auto';
-      productToDelete = null;
-    }
-
-    function limparCamposDinamicos() {
-      document.getElementById('additionalImagesContainer').innerHTML = '';
-      document.getElementById('specsContainer').innerHTML = '';
-      document.getElementById('observationsContainer').innerHTML = '';
-      document.getElementById('tagsContainer').innerHTML = '';
-    }
-
-    // Funções CRUD
-    function novoProduto() {
-      document.getElementById('modalProductTitle').textContent = 'Novo Produto';
-      document.getElementById('productId').value = '';
-      abrirModal();
-    }
-
-    function editarProduto(id) {
-      const produto = produtos.find(p => p.id === id);
-      if (!produto) return;
-
-      document.getElementById('modalProductTitle').textContent = 'Editar Produto';
-      document.getElementById('productId').value = produto.id;
-      document.getElementById('productName').value = produto.nome;
-      document.getElementById('productPrice').value = produto.preco;
-      document.getElementById('productDescription').value = produto.descricao;
-      document.getElementById('productImage').value = produto.imagem;
-
-      limparCamposDinamicos();
-
-      // Imagens adicionais
-      if (produto.imagens && produto.imagens.length > 0) {
-        produto.imagens.forEach(img => addImageField(img));
-      }
-
-      // Especificações
-      if (produto.especificacoes) {
-        Object.entries(produto.especificacoes).forEach(([key, value]) => {
-          addSpecField(key, value);
-        });
-      }
-
-      // Observações
-      if (produto.observacoes && produto.observacoes.length > 0) {
-        produto.observacoes.forEach(obs => addObservationField(obs));
-      }
-
-      // Tags
-      if (produto.tags && produto.tags.length > 0) {
-        produto.tags.forEach(tag => addTagField(tag));
-      }
-
-      abrirModal();
-    }
-
-    function confirmarExclusao(id) {
-      const produto = produtos.find(p => p.id === id);
-      if (!produto) return;
-
-      productToDelete = id;
-      document.getElementById('productToDeleteName').textContent = produto.nome;
-      confirmModal.style.display = 'block';
-      document.body.style.overflow = 'hidden';
-    }
-
-    async function excluirProduto() {
-      if (!productToDelete) return;
-
-      try {
-        const result = await callGoogleScript('delete', { id: productToDelete });
-        
-        if (result.success) {
-          produtos = produtos.filter(p => p.id !== productToDelete);
-          renderizarTabela();
-          showAlert('Produto excluído com sucesso!');
-        } else {
-          showAlert('Erro ao excluir produto: ' + result.message, 'error');
-        }
-      } catch (error) {
-        showAlert('Erro ao excluir produto: ' + error.message, 'error');
-      }
-      
-      closeConfirmModal();
-    }
-
-    // Event Listeners
-    document.getElementById('btnNovoProduto').addEventListener('click', novoProduto);
-    document.querySelector('#productModal .close-btn').addEventListener('click', closeModal);
-    document.querySelector('#confirmModal .close-btn').addEventListener('click', closeConfirmModal);
-    document.getElementById('confirmDeleteBtn').addEventListener('click', excluirProduto);
-
-    productForm.addEventListener('submit', async function(e) {
-      e.preventDefault();
-
-      // Coletar dados do formulário
-      const productId = document.getElementById('productId').value;
-      const productData = {
-        nome: document.getElementById('productName').value,
-        preco: parseFloat(document.getElementById('productPrice').value),
-        descricao: document.getElementById('productDescription').value,
-        imagem: document.getElementById('productImage').value,
-        imagens: Array.from(document.querySelectorAll('#additionalImagesContainer input'))
-          .map(input => input.value)
-          .filter(value => value.trim() !== ''),
-        especificacoes: {},
-        observacoes: Array.from(document.querySelectorAll('#observationsContainer input'))
-          .map(input => input.value)
-          .filter(value => value.trim() !== ''),
-        tags: Array.from(document.querySelectorAll('#tagsContainer input'))
-          .map(input => input.value)
-          .filter(value => value.trim() !== '')
-      };
-
-      // Coletar especificações
-      const specInputs = document.querySelectorAll('#specsContainer .spec-input');
-      specInputs.forEach(spec => {
-        const inputs = spec.querySelectorAll('input');
-        const key = inputs[0].value.trim();
-        const value = inputs[1].value.trim();
-        if (key && value) {
-          productData.especificacoes[key] = value;
-        }
-      });
-
-      try {
-        if (productId) {
-          // Editar produto existente
-          const result = await callGoogleScript('edit', { 
-            id: parseInt(productId), 
-            data: productData 
-          });
-          
-          if (result.success) {
-            // Atualizar localmente
-            const index = produtos.findIndex(p => p.id === parseInt(productId));
-            if (index !== -1) {
-              produtos[index] = { ...produtos[index], ...productData };
-            }
-            showAlert('Produto atualizado com sucesso!');
-          } else {
-            showAlert('Erro ao atualizar produto: ' + result.message, 'error');
-          }
-        } else {
-          // Novo produto - você precisará implementar esta função no Google Apps Script
-          showAlert('Funcionalidade de cadastro ainda não implementada no servidor', 'error');
-          return;
-        }
-
-        renderizarTabela();
-        closeModal();
-      } catch (error) {
-        showAlert('Erro ao salvar produto: ' + error.message, 'error');
-      }
-    });
-
-    // Fechar modais ao clicar fora
-    window.addEventListener('click', (e) => {
-      if (e.target === productModal) closeModal();
-      if (e.target === confirmModal) closeConfirmModal();
-    });
-
-    // Inicializar
-    document.addEventListener('DOMContentLoaded', () => {
-      carregarProdutos();
-    });
-  </script>
-</body>
-</html>
+          <i class="
